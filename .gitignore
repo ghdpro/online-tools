@@ -1,0 +1,8 @@
+# Python
+*.pyc
+
+# JetBrains
+.idea
+
+# Configuration with secrets/passwords
+.env
