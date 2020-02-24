@@ -27,11 +27,26 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
+# Security
+if not DEBUG:  # Skip SSL for local development
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_PRELOAD = True
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
-STATIC_ROOT = os.path.join(FILE_DIR, 'static')
+if 'static_root' in config['DEFAULT']:
+    STATIC_ROOT = config.get('DEFAULT', 'static_root')
+else:
+    STATIC_ROOT = os.path.join(FILE_DIR, 'static')
 
 INSTALLED_APPS = [
     'django.contrib.sessions',
@@ -122,19 +137,16 @@ LOGGING = {
             'handlers': ['console', 'production', 'debug'],
             'level': 'DEBUG',
         },
-        'django': {
-            'handlers': ['console', 'production', 'debug'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'asyncio': {
-            'handlers': ['console', 'production', 'debug'],
-            'level': 'INFO',
-            'propagate': False,
-        },
         'django.server': DEFAULT_LOGGING['loggers']['django.server'],
     }
 }
+# Silence DEBUG messages from certain modules
+for logger in ['django', 'asyncio']:
+    LOGGING['loggers'][logger] = {
+        'handlers': ['console', 'production', 'debug'],
+        'level': 'INFO',
+        'propagate': False,
+    }
 
 # Sentry
 if 'sentry' in config and config.getboolean('sentry', 'enable', fallback=True):
