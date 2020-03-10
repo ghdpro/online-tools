@@ -88,7 +88,7 @@ from django.utils.log import DEFAULT_LOGGING
 if 'logfile' in config['DEFAULT']:
     LOGFILE = config.get('DEFAULT', 'logfile')
 else:
-    LOGFILE = os.path.join(FILE_DIR, 'log', 'rpguru.log')
+    LOGFILE = os.path.join(FILE_DIR, 'log', 'online-tools.log')
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

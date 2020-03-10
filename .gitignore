@@ -6,3 +6,9 @@
 
 # Configuration with secrets/passwords
 .env
+
+# Commit ID
+templates/id.html
+
+# Google Analytics Code
+templates/analytics.html
