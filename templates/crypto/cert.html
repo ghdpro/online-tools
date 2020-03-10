@@ -1,0 +1,100 @@
+{%  extends 'base.html' %}
+{% load toolkit %}
+
+{% block content %}
+    <h1>Certificate Check</h1>
+    <nav>
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+            <a class="nav-item nav-link{% if tab == 'host' or tab is None %} active{% endif %}" id="nav-host-tab" data-toggle="tab" href="#nav-host" role="tab" aria-controls="nav-host" aria-selected="{% if tab == 'host' or tab is None %}true{% else %}false{% endif %}">Check Host</a>
+            <a class="nav-item nav-link{% if tab == 'upload' %} active{% endif %}" id="nav-upload-tab" data-toggle="tab" href="#nav-upload" role="tab" aria-controls="nav-upload" aria-selected="{% if tab == 'upload' %}true{% else %}false{% endif %}">Upload Certificate</a>
+            <a class="nav-item nav-link{% if tab == 'text' %} active{% endif %}" id="nav-text-tab" data-toggle="tab" href="#nav-text" role="tab" aria-controls="nav-text" aria-selected="{% if tab == 'text' %}true{% else %}false{% endif %}">Copy &amp; Paste Certificate</a>
+        </div>
+    </nav>
+    <form action="{% url 'crypto:cert' %}" enctype="multipart/form-data" method="post">
+    {% csrf_token %}
+        {% include 'toolkit/forms/head.html' with form=form only %}
+        <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade{% if tab == 'host' or tab is None %} show active{% endif %} m-3" id="nav-host" role="tabpanel" aria-labelledby="nav-host-tab">
+                {% include 'toolkit/forms/field.html' with field=form.host row_css='form-group row' label_css='col-sm-2' field_css='col-sm-10' only %}
+                {% include 'toolkit/forms/field.html' with field=form.server row_css='form-group row' label_css='col-sm-2' field_css='col-sm-10' only %}
+            </div>
+            <div class="tab-pane fade{% if tab == 'upload' %} show active{% endif %} m-3" id="nav-upload" role="tabpanel" aria-labelledby="nav-upload-tab">
+                {% include 'toolkit/forms/field.html' with field=form.cert row_css='form-group row' label_css='col-sm-2' field_css='col-sm-10' only %}
+            </div>
+            <div class="tab-pane fade{% if tab == 'text' %} show active{% endif %} m-3" id="nav-text" role="tabpanel" aria-labelledby="nav-text-tab">
+                {% include 'toolkit/forms/field.html' with field=form.body row_css='form-group row' label_css='col-sm-2' field_css='col-sm-10' only %}
+            </div>
+        </div>
+	    <div class="form-group row m-3">
+		    <div class="col-sm-2"></div>
+		    <div class="col-sm-10">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-cog"></i> Check</button>
+            </div>
+        </div>
+    </form>
+
+    {% if x509 or error %}
+        <h2 class="mt-5">Result</h2>
+        {% if error %}
+            <div class="alert alert-danger" role="alert">{{ error }}</div>
+        {% endif %}
+    {% endif %}
+    {% if x509 %}
+        <nav>
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                <a class="nav-item nav-link active" id="nav-summary-tab" data-toggle="tab" href="#nav-summary" role="tab" aria-controls="nav-summary" aria-selected="true">Summary</a>
+                <a class="nav-item nav-link" id="nav-full-tab" data-toggle="tab" href="#nav-full" role="tab" aria-controls="nav-full" aria-selected="false">Full</a>
+            </div>
+        </nav>
+        <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active m-3" id="nav-summary" role="tabpanel" aria-labelledby="nav-summary-tab">
+                {% with h='w-25' d='w-75' %}
+                <table class="table table-sm">
+                    <tbody>
+                        {% if 'common_name' in x509 %}
+                        <tr>
+                            <th class="{{ h }}">Common Name</th>
+                            <td class="{{ d }}">{{ x509|get_item:'common_name' }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if 'subject_alt_name' in x509 %}
+                        <tr>
+                            <th class="{{ h }}">Subject Alternative Names</th>
+                            <td class="{{ d }}">{{ x509|get_item:'subject_alt_name' }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if 'subject' in x509 %}
+                        <tr>
+                            <th class="{{ h }}">Organization</th>
+                            <td class="{{ d }}">{{ x509|get_item:'subject' }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if 'issuer' in x509 %}
+                        <tr>
+                            <th class="{{ h }}">Issuer</th>
+                            <td class="{{ d }}">{{ x509|get_item:'issuer' }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <th class="{{ h }}">Valid from</th>
+                            <td class="{{ d }}">{{ x509|get_item:'valid_not_before'|date:'F j, Y' }}</td>
+                        </tr>
+                        <tr>
+                            <th class="{{ h }}">Valid until</th>
+                            <td class="{{ d }}">{{ x509|get_item:'valid_not_after'|date:'F j, Y' }}
+                                {% if x509|get_item:'has_expired' %}<span class="badge badge-danger">Expired</span>{% else %}<span class="badge badge-success">Valid</span>{% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="{{ h }}">Serial Number</th>
+                            <td class="{{ d }}">{{ x509|get_item:'serial' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                {% endwith %}
+            </div>
+            <div class="tab-pane fade m-3" id="nav-full" role="tabpanel" aria-labelledby="nav-full-tab">
+            </div>
+        </div>
+    {% endif %}
+{% endblock content %}
