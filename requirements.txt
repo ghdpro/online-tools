@@ -1,4 +1,4 @@
-Django==3.0.8
+Django==3.0.14
 django-debug-toolbar==2.2
 django-template-toolkit==0.1.2
 sentry-sdk==0.16.0
